@@ -11,6 +11,16 @@ services:
       - "9306:3306"
     networks:
       - network1
+  test-db:
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=8EvlcUciChlyefOVedot
+      - MYSQL_DATABASE=bookmark
+    ports:
+      - "9307:3306"
+    networks:
+      - network1
 
 networks:
   network1:
