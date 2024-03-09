@@ -24,5 +24,49 @@ describe('App e2e', () => {
     app.close();
   });
 
-  it.todo('Should pass');
+  describe('Auth', () => {
+    describe('Sign up', () => {
+      it.todo('Should sign up');
+    });
+
+    describe('Sign in', () => {
+      it.todo('Should sign in');
+    });
+  });
+
+  describe('User', () => {
+    describe('Get me', () => {
+      it.todo('Should get user info');
+    });
+
+    describe('Edit me', () => {
+      it.todo('Should edit user info');
+    });
+
+    describe('Change password', () => {
+      it.todo('Should change user password');
+    });
+  });
+
+  describe('Bookmarks', () => {
+    describe('Create bookmark', () => {
+      it.todo('Should create a bookmark');
+    });
+
+    describe('Get Bookmarks', () => {
+      it.todo('Should get bookmarks');
+    });
+
+    describe('Edit bookmark', () => {
+      it.todo('Should edit a bookmark');
+    });
+
+    describe('Get bookmark by id', () => {
+      it.todo('Should get a bookmark by an id');
+    });
+
+    describe('Delete a bookmark', () => {
+      it.todo('Should delete a bookmark');
+    });
+  });
 });
