@@ -1,17 +1,18 @@
 import * as pactum from 'pactum';
 import { Test } from '@nestjs/testing';
-import { Faker, pt_PT } from '@faker-js/faker';
+import { Faker, en, pt_PT } from '@faker-js/faker';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { AuthDTO, LoginDTO } from '../src/auth/dto';
 import { EditUserDTO } from 'src/user/dto';
 import { ChangePasswordDTO } from 'src/user/dto/change.password.dto';
+import { CreateBookmarkDto, UpdateBookmarkDto } from 'src/bookmark/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  const faker = new Faker({ locale: [pt_PT] });
+  const faker = new Faker({ locale: [pt_PT, en] });
   const userPassword = faker.internet.password();
 
   beforeAll(async () => {
@@ -109,7 +110,110 @@ describe('App e2e', () => {
     });
   });
 
-  describe('User', () => {
+  describe('Bookmarks', () => {
+    const endpoint = '/bookmarks';
+
+    describe('Get empty Bookmarks', () => {
+      it("Shouldn't get bookmarks", () => {
+        return pactum
+          .spec()
+          .get(endpoint)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBody([]);
+      });
+    });
+
+    describe('Create bookmark', () => {
+      const dto: CreateBookmarkDto = {
+        title: faker.word.noun({
+          length: { min: 4, max: 10 },
+          strategy: 'fail',
+        }),
+        description: faker.lorem.lines(2),
+        link: faker.internet.url(),
+      };
+
+      it('Should create a bookmark', () => {
+        return pactum
+          .spec()
+          .post(endpoint)
+          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(201)
+          .stores('bookmarkId', 'id');
+      });
+    });
+
+    describe('Get Bookmarks', () => {
+      it('Should get bookmarks', () => {
+        return pactum
+          .spec()
+          .get(endpoint)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectJsonLength(1);
+      });
+    });
+
+    describe('Edit bookmark', () => {
+      const dto: UpdateBookmarkDto = {
+        title: faker.word.noun({
+          length: { min: 4, max: 10 },
+          strategy: 'fail',
+        }),
+        description: faker.lorem.lines(2),
+        link: faker.internet.url(),
+      };
+
+      it('Should edit a bookmark', () => {
+        return pactum
+          .spec()
+          .patch(`${endpoint}/{id}`)
+          .withPathParams('id', '$S{bookmarkId}')
+          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBodyContains('$S{bookmarkId}');
+      });
+    });
+
+    describe('Get bookmark by id', () => {
+      it('Should get a bookmark by an id', () => {
+        return pactum
+          .spec()
+          .patch(`${endpoint}/{id}`)
+          .withPathParams('id', '$S{bookmarkId}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBodyContains('$S{bookmarkId}');
+      });
+    });
+
+    describe('Delete a bookmark', () => {
+      it('Should delete a bookmark', () => {
+        return pactum
+          .spec()
+          .delete(`${endpoint}/{id}`)
+          .withPathParams('id', '$S{bookmarkId}')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(204);
+      });
+    });
+
+    describe('Get empty Bookmarks', () => {
+      it("Shouldn't get bookmarks", () => {
+        return pactum
+          .spec()
+          .get(endpoint)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBody([]);
+      });
+    });
+  });
+
+  describe('User info', () => {
     const endpoint = '/users';
 
     describe('Get me', () => {
@@ -158,26 +262,4 @@ describe('App e2e', () => {
       });
     });
   });
-
-  /*describe('Bookmarks', () => {
-    describe('Create bookmark', () => {
-      it.todo('Should create a bookmark');
-    });
-
-    describe('Get Bookmarks', () => {
-      it.todo('Should get bookmarks');
-    });
-
-    describe('Edit bookmark', () => {
-      it.todo('Should edit a bookmark');
-    });
-
-    describe('Get bookmark by id', () => {
-      it.todo('Should get a bookmark by an id');
-    });
-
-    describe('Delete a bookmark', () => {
-      it.todo('Should delete a bookmark');
-    });
-  });*/
 });
