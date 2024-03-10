@@ -5,10 +5,14 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { AuthDTO, LoginDTO } from '../src/auth/dto';
+import { EditUserDTO } from 'src/user/dto';
+import { ChangePasswordDTO } from 'src/user/dto/change.password.dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  const faker = new Faker({ locale: [pt_PT] });
+  const userPassword = faker.internet.password();
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -32,12 +36,11 @@ describe('App e2e', () => {
   });
 
   describe('Auth', () => {
-    const faker = new Faker({ locale: [pt_PT] });
     const dto: AuthDTO = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       email: faker.internet.email(),
-      password: faker.internet.password(),
+      password: userPassword,
     };
 
     describe('Sign up', () => {
@@ -106,21 +109,57 @@ describe('App e2e', () => {
     });
   });
 
-  /*describe('User', () => {
-    describe('Get me', () => {
-      it.todo('Should get user info');
-    });
+  describe('User', () => {
+    const endpoint = '/users';
 
-    describe('Edit me', () => {
-      it.todo('Should edit user info');
+    describe('Get me', () => {
+      it('Should get user info', () => {
+        return pactum
+          .spec()
+          .get(`${endpoint}/me`)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200);
+      });
     });
 
     describe('Change password', () => {
-      it.todo('Should change user password');
+      it('Should change user password', () => {
+        const dto: ChangePasswordDTO = {
+          currentPassword: userPassword,
+          newPassword: faker.internet.password(),
+        };
+
+        return pactum
+          .spec()
+          .patch(`${endpoint}/change-password`)
+          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200);
+      });
+    });
+
+    describe('Edit me', () => {
+      it('Should edit user info', () => {
+        const dto: EditUserDTO = {
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          email: faker.internet.email(),
+        };
+
+        return pactum
+          .spec()
+          .patch(`${endpoint}/me`)
+          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .expectBodyContains(dto.firstName)
+          .expectBodyContains(dto.lastName)
+          .expectBodyContains(dto.email);
+      });
     });
   });
 
-  describe('Bookmarks', () => {
+  /*describe('Bookmarks', () => {
     describe('Create bookmark', () => {
       it.todo('Should create a bookmark');
     });
